@@ -11,7 +11,6 @@ from ecdsa.util import sigdecode_der
 from bitcoin_client.bitcoin_cmd import BitcoinCommand
 from bitcoin_client.hwi.serialization import CTransaction
 from bitcoin_client.exception import ConditionOfUseNotSatisfiedError
-from utils import has_automation
 
 from ragger.backend import RaisePolicy
 
