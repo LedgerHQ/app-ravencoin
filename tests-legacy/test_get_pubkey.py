@@ -1,7 +1,9 @@
+from bitcoin_client.bitcoin_cmd import BitcoinCommand
 from bitcoin_client.bitcoin_base_cmd import AddrType
 
 
-def test_get_public_key(cmd):
+def test_get_public_key(backend, firmware):
+    cmd = BitcoinCommand(transport=backend, debug=False)
     # legacy address
     pub_key, addr, bip32_chain_code = cmd.get_public_key(
         addr_type=AddrType.Legacy,

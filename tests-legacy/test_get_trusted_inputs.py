@@ -1,10 +1,13 @@
 from io import BytesIO
 
+from bitcoin_client.bitcoin_cmd import BitcoinCommand
 from bitcoin_client.hwi.serialization import CTransaction
 from bitcoin_client.utils import deser_trusted_input
 
 
-def test_get_trusted_inputs(cmd):
+def test_get_trusted_inputs(backend, firmware):
+    cmd = BitcoinCommand(transport=backend, debug=False)
+
     raw_tx: bytes = bytes.fromhex(
         # Version no (4 bytes little endian)
         "02000000"
