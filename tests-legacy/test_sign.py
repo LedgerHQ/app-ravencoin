@@ -97,5 +97,6 @@ def test_sign_fail_p2pkh_reject(cmd):
 '''
 
 
-# def test_example(cmd):
-#    sign_from_json(cmd, "./data/example/tx.json")
+# def test_example(backend, firmware):
+#     cmd = BitcoinCommand(transport=backend, debug=False)
+#     sign_from_json(cmd, "./data/example/tx.json")

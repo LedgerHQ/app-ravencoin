@@ -266,7 +266,6 @@ class BitcoinBaseCommand:
         None
 
         """
-        sw: int
 
         for chunk in self.builder.untrusted_hash_tx_input_start(tx=tx,
                                                                 inputs=inputs,
@@ -274,11 +273,11 @@ class BitcoinBaseCommand:
                                                                 script=script,
                                                                 is_new_transaction=is_new_transaction):
             self.transport.send_raw(chunk)
-            sw, _ = self.transport.recv()  # type: int, bytes
+            rapdu = self.transport.receive()
 
-            if sw != 0x9000:
+            if rapdu.status != 0x9000:
                 raise DeviceException(
-                    error_code=sw,
+                    error_code=rapdu.status,
                     ins=InsType.UNTRUSTED_HASH_TRANSACTION_INPUT_START
                 )
 
@@ -302,19 +301,20 @@ class BitcoinBaseCommand:
 
 
         """
-        sw: int
         response: bytes = b""
 
         for chunk in self.builder.untrusted_hash_tx_input_finalize(tx=tx,
                                                                    change_path=change_path):
             self.transport.send_raw(chunk)
-            sw, response = self.transport.recv()
+            rapdu = self.transport.receive()
 
-            if sw != 0x9000:
+            if rapdu.status != 0x9000:
                 raise DeviceException(
-                    error_code=sw,
+                    error_code=rapdu.status,
                     ins=InsType.UNTRUSTED_HASH_TRANSACTION_INPUT_FINALIZE
                 )
+            response = rapdu.data
+
         # response = RFU (1) || User validation flag (1)
         return response
 
