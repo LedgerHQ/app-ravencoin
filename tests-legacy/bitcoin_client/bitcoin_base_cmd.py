@@ -48,12 +48,14 @@ class BitcoinBaseCommand:
             Random bytes of length `n` from the device.
 
         """
-        sw, response = self.transport.exchange_raw(
+        rapdu = self.transport.exchange_raw(
             self.builder.get_random(n=n)
         )
 
-        if sw != 0x9000:
-            raise DeviceException(error_code=sw, ins=InsType.GET_RANDOM)
+        if rapdu.status != 0x9000:
+            raise DeviceException(error_code=rapdu.status, ins=InsType.GET_RANDOM)
+
+        response = rapdu.data
 
         return response
 
@@ -97,12 +99,14 @@ class BitcoinBaseCommand:
             A tuple (p2pkh_pref, p2sh_prefix, coin_family, coin_name, coin_ticker).
 
         """
-        sw, response = self.transport.exchange_raw(
+        rapdu = self.transport.exchange_raw(
             self.builder.get_coin_version()
-        )  # type: int, bytes
+        )
 
-        if sw != 0x9000:
-            raise DeviceException(error_code=sw, ins=InsType.GET_COIN_VERSION)
+        if rapdu.status != 0x9000:
+            raise DeviceException(error_code=rapdu.status, ins=InsType.GET_COIN_VERSION)
+
+        response = rapdu.data
 
         # response = p2pkh_prefix (2) || p2sh_prefix (2) || coin_family (1) ||
         #            len(coin_name) (1) || coin_name (var) ||
@@ -147,14 +151,16 @@ class BitcoinBaseCommand:
         -------
 
         """
-        sw, response = self.transport.exchange_raw(
+        rapdu = self.transport.exchange_raw(
             self.builder.get_public_key(addr_type=addr_type,
                                         bip32_path=bip32_path,
                                         display=display)
-        )  # type: int, bytes
+        )
 
-        if sw != 0x9000:
-            raise DeviceException(error_code=sw, ins=InsType.GET_WALLET_PUBLIC_KEY)
+        if rapdu.status != 0x9000:
+            raise DeviceException(error_code=rapdu.status, ins=InsType.GET_WALLET_PUBLIC_KEY)
+
+        response = rapdu.data
 
         # response = len(pub_key) (1) || pub_key (var) ||
         #            len(addr) (1) || addr (var) || bip32_chain_code (32)
@@ -192,15 +198,16 @@ class BitcoinBaseCommand:
             Serialized trusted input.
 
         """
-        sw: int
         response: bytes = b""
 
         for chunk in self.builder.get_trusted_input(utxo, output_index):
             self.transport.send_raw(chunk)
-            sw, response = self.transport.recv()  # type: int, bytes
+            rapdu = self.transport.receive()
 
-            if sw != 0x9000:
-                raise DeviceException(error_code=sw, ins=InsType.GET_TRUSTED_INPUT)
+            if rapdu.status != 0x9000:
+                raise DeviceException(error_code=rapdu.status, ins=InsType.GET_TRUSTED_INPUT)
+
+            response = rapdu.data
 
         # response = 0x32 (1) || 0x00 (1) || random (2) || prev_txid (32) ||
         #            output_index (4) || amount (8) || HMAC (8)
@@ -259,7 +266,6 @@ class BitcoinBaseCommand:
         None
 
         """
-        sw: int
 
         for chunk in self.builder.untrusted_hash_tx_input_start(tx=tx,
                                                                 inputs=inputs,
@@ -267,11 +273,11 @@ class BitcoinBaseCommand:
                                                                 script=script,
                                                                 is_new_transaction=is_new_transaction):
             self.transport.send_raw(chunk)
-            sw, _ = self.transport.recv()  # type: int, bytes
+            rapdu = self.transport.receive()
 
-            if sw != 0x9000:
+            if rapdu.status != 0x9000:
                 raise DeviceException(
-                    error_code=sw,
+                    error_code=rapdu.status,
                     ins=InsType.UNTRUSTED_HASH_TRANSACTION_INPUT_START
                 )
 
@@ -295,19 +301,20 @@ class BitcoinBaseCommand:
 
 
         """
-        sw: int
         response: bytes = b""
 
         for chunk in self.builder.untrusted_hash_tx_input_finalize(tx=tx,
                                                                    change_path=change_path):
             self.transport.send_raw(chunk)
-            sw, response = self.transport.recv()
+            rapdu = self.transport.receive()
 
-            if sw != 0x9000:
+            if rapdu.status != 0x9000:
                 raise DeviceException(
-                    error_code=sw,
+                    error_code=rapdu.status,
                     ins=InsType.UNTRUSTED_HASH_TRANSACTION_INPUT_FINALIZE
                 )
+            response = rapdu.data
+
         # response = RFU (1) || User validation flag (1)
         return response
 

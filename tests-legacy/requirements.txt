@@ -1,4 +1,9 @@
-typing-extensions>=3.7.4.3
 pytest>=6.2.1
-ledgercomm>=1.1.0
+ragger[speculos]>=1.1.0
+ragger[ledgerwallet]>=1.1.0
+ragger[ledgercomm]>=1.1.0
+Jinja2==3.1.2
+Flask==2.1.2
 ecdsa>=0.16.1,<0.17.0
+pysha3>=1.0.0,<2.0.0
+typing-extensions>=3.7.4.3
